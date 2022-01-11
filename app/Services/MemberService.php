@@ -2,8 +2,12 @@
 
 namespace App\Services;
 
-use App\Models\Member;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
+use App\Exceptions\ModelServiceException;
+use App\Http\Requests\MemberCreateRequest;
+use App\Http\Requests\MemberEditRequest;
+use App\Models\Member;
 
 class MemberService
 {
@@ -37,5 +41,41 @@ class MemberService
         $response['recordsFiltered'] = $recordsTotal;
 
         return $response;
+    }
+
+    /**
+     * @param MemberCreateRequest $request
+     * @return int
+     * @throws ModelServiceException
+     */
+    public function store(MemberCreateRequest $request): int
+    {
+        try {
+            $validatedData = $request->validated();
+
+            if ($request->hasFile('member_image')) {
+                $validatedData['image_path'] = $request->member_image->store('public/members');
+                $validatedData['image_path'] = str_replace('public/members/', 'storage/members/', $validatedData['image_path']);
+            }
+
+            return Member::create($validatedData)->id;
+        } catch (\Exception | \Error $e) {
+            throw new ModelServiceException($e->getMessage(), $e->getCode(), $e);
+        }
+    }
+
+    /**
+     * @param MemberEditRequest $request
+     * @param Member $member
+     * @return void
+     * @throws ModelServiceException
+     */
+    public function update(MemberEditRequest $request, Member $member): void
+    {
+        try {
+            $member->update($request->validated());
+        } catch (\Exception | \Error $e) {
+            throw new ModelServiceException($e->getMessage(), $e->getCode(), $e);
+        }
     }
 }

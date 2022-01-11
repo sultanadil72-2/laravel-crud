@@ -120,7 +120,7 @@
                         }
                     })
                     .catch(function (error) {
-                        alert('error: ' + error.response.data)
+                        alert(error.response.data)
                     })
                     .then(function () {
                         // always executed
