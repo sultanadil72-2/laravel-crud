@@ -15,6 +15,11 @@ class ModelServiceException extends Exception
     {
         $this->previous = $previous;
 
+        // QueryException may return string sql error code, which is not valid for Exception class
+        if ($previous instanceof QueryException) {
+            $code = 0; // default code in case of QueryException
+        }
+
         parent::__construct($message, $code, $previous);
     }
 
@@ -31,16 +36,24 @@ class ModelServiceException extends Exception
 
         if ($e instanceof QueryException) {
             $message = $e->errorInfo[2];
-            $statusCode = Response::HTTP_INTERNAL_SERVER_ERROR;
+            $statusCode = Response::HTTP_UNPROCESSABLE_ENTITY;
 
             if ($e->errorInfo[1] === 1062) {
                 $message = explode(" for ", $message)[0];
                 $statusCode = Response::HTTP_CONFLICT;
             }
 
-            return response($message, $statusCode);
+            $response = [
+                'message' => $message,
+            ];
+
+            return response($response, $statusCode);
         }
 
-        return response('Internal Server Error', Response::HTTP_INTERNAL_SERVER_ERROR);
+        $response = [
+            'message' => config('app.debug') ? $e->getMessage() : 'Internal Server Error'
+        ];
+
+        return response($response, Response::HTTP_INTERNAL_SERVER_ERROR);
     }
 }

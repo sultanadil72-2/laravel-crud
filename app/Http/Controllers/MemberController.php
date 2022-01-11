@@ -61,7 +61,11 @@ class MemberController extends Controller
     {
         $id = $this->memberService->store($request);
 
-        return response($id, Response::HTTP_CREATED);
+        $response = [
+            'id' => $id
+        ];
+
+        return response($response, Response::HTTP_CREATED);
     }
 
     /**
@@ -69,12 +73,12 @@ class MemberController extends Controller
      *
      * @param Request $request
      * @param Member $member
-     * @return Member|View
+     * @return Response|View
      */
     public function show(Request $request, Member $member)
     {
         if ($request->expectsJson()) {
-            return $member;
+            return response($member);
         }
 
         $data['member'] = $member;
@@ -125,13 +129,13 @@ class MemberController extends Controller
 
     /**
      * @param Request $request
-     * @return string
+     * @return Response
      */
-    public function showTable(Request $request): string
+    public function showTable(Request $request): Response
     {
         $id = $request->input('id', 0);
 
-        return "
+        $table = "
             <table class='table table-striped'>
             <tr>
                 <td>something: $id</td>
@@ -141,5 +145,11 @@ class MemberController extends Controller
             </tr>
             </table>
         ";
+
+        $response = [
+            'table' => $table
+        ];
+
+        return response($response);
     }
 }
