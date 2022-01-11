@@ -2,7 +2,6 @@
 
 namespace App\Services;
 
-use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 use App\Exceptions\ModelServiceException;
 use App\Http\Requests\MemberCreateRequest;
