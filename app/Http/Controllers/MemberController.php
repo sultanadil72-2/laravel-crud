@@ -59,10 +59,10 @@ class MemberController extends Controller
      */
     public function store(MemberCreateRequest $request): Response
     {
-        $id = $this->memberService->store($request);
+        $member = $this->memberService->store($request);
 
         $response = [
-            'id' => $id
+            'id' => $member->id
         ];
 
         return response($response, Response::HTTP_CREATED);

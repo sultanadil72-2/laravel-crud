@@ -45,10 +45,10 @@ class MemberService
 
     /**
      * @param MemberCreateRequest $request
-     * @return int
+     * @return Member
      * @throws ModelServiceException
      */
-    public function store(MemberCreateRequest $request): int
+    public function store(MemberCreateRequest $request): Member
     {
         try {
             $validatedData = $request->validated();
@@ -58,7 +58,7 @@ class MemberService
                 $validatedData['image_path'] = str_replace('public/members/', 'storage/members/', $validatedData['image_path']);
             }
 
-            return Member::create($validatedData)->id;
+            return Member::create($validatedData);
         } catch (\Exception | \Error $e) {
             throw new ModelServiceException($e->getMessage(), $e->getCode(), $e);
         }
