@@ -28,9 +28,8 @@ class ModelServiceException extends Exception
      *
      * @param Request $request
      * @return Response
-     * @throws \JsonException
      */
-    public function render(Request $request)
+    public function render(Request $request): Response
     {
         $e = $this->previous;
 
