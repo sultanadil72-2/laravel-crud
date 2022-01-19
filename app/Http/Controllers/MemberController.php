@@ -2,16 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Exceptions\ModelServiceException;
 use App\Http\Requests\MemberCreateRequest;
 use App\Http\Requests\MemberEditRequest;
 use App\Models\Member;
 use App\Services\MemberService;
-use Exception;
-use Illuminate\Contracts\View\Factory;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Response;
 use Illuminate\Http\Request;
-use Illuminate\Database\QueryException;
 
 class MemberController extends Controller
 {
@@ -29,8 +27,7 @@ class MemberController extends Controller
      * Display a listing of the resource.
      *
      * @param Request $request
-     * @return array|Factory|View
-     * @throws Exception
+     * @return array|View
      */
     public function index(Request $request)
     {
@@ -44,9 +41,9 @@ class MemberController extends Controller
     /**
      * Show the form for creating a new resource.
      *
-     * @return View|Factory
+     * @return View
      */
-    public function create()
+    public function create(): View
     {
         $data['member'] = new Member;
 
@@ -58,40 +55,17 @@ class MemberController extends Controller
      *
      * @param MemberCreateRequest $request
      * @return Response
+     * @throws ModelServiceException
      */
     public function store(MemberCreateRequest $request): Response
     {
-        try {
-            $validatedData = $request->validated();
+        $member = $this->memberService->store($request);
 
-            if ($request->hasFile('member_image')) {
-                $validatedData['image_path'] = $request->member_image->store('public/members');
-                $validatedData['image_path'] = str_replace('public/members/', 'storage/members/', $validatedData['image_path']);
-            }
+        $response = [
+            'id' => $member->id
+        ];
 
-            $member = Member::create($validatedData);
-
-            $message = $member->id;
-            $statusCode = 200;
-        } catch (QueryException $e) {
-            try {
-                $message = json_encode($e->errorInfo, JSON_THROW_ON_ERROR);
-                $statusCode = 500;
-
-                if ($e->errorInfo[1] === 1062) {
-                    $message = explode(" for ", $e->errorInfo[2])[0];
-                    $statusCode = 409;
-                }
-            } catch (\JsonException $e) {
-                $message = $e->getMessage();
-                $statusCode = 500;
-            }
-        } catch (\Exception $e) {
-            $message = $e->getMessage();
-            $statusCode = 500;
-        }
-
-        return response($message, $statusCode);
+        return response($response, Response::HTTP_CREATED);
     }
 
     /**
@@ -99,12 +73,12 @@ class MemberController extends Controller
      *
      * @param Request $request
      * @param Member $member
-     * @return Member|View|Factory
+     * @return Response|View
      */
     public function show(Request $request, Member $member)
     {
         if ($request->expectsJson()) {
-            return $member;
+            return response($member);
         }
 
         $data['member'] = $member;
@@ -116,9 +90,9 @@ class MemberController extends Controller
      * Show the form for editing the specified resource.
      *
      * @param Member $member
-     * @return View|Factory
+     * @return View
      */
-    public function edit(Member $member)
+    public function edit(Member $member): View
     {
         $data['member'] = $member;
 
@@ -131,33 +105,13 @@ class MemberController extends Controller
      * @param MemberEditRequest $request
      * @param Member $member
      * @return Response
+     * @throws ModelServiceException
      */
     public function update(MemberEditRequest $request, Member $member): Response
     {
-        try {
-            $member->update($request->validated());
+        $this->memberService->update($request, $member);
 
-            $message = 'User Updated successfully';
-            $statusCode = 200;
-        } catch (QueryException $e) {
-            try {
-                $message = json_encode($e->errorInfo, JSON_THROW_ON_ERROR);
-                $statusCode = 500;
-
-                if ($e->errorInfo[1] === 1062) {
-                    $message = explode(" for ", $e->errorInfo[2])[0];
-                    $statusCode = 409;
-                }
-            } catch (\JsonException $e) {
-                $message = $e->getMessage();
-                $statusCode = 500;
-            }
-        } catch (\Exception $e) {
-            $message = $e->getMessage();
-            $statusCode = 500;
-        }
-
-        return response($message, $statusCode);
+        return response('', Response::HTTP_NO_CONTENT);
     }
 
     /**
@@ -170,18 +124,18 @@ class MemberController extends Controller
     {
         $member->delete();
 
-        return response('', 204);
+        return response('', Response::HTTP_NO_CONTENT);
     }
 
     /**
      * @param Request $request
-     * @return string
+     * @return Response
      */
-    public function showTable(Request $request): string
+    public function showTable(Request $request): Response
     {
         $id = $request->input('id', 0);
 
-        return "
+        $table = "
             <table class='table table-striped'>
             <tr>
                 <td>something: $id</td>
@@ -191,5 +145,11 @@ class MemberController extends Controller
             </tr>
             </table>
         ";
+
+        $response = [
+            'table' => $table
+        ];
+
+        return response($response);
     }
 }

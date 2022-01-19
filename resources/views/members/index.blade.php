@@ -51,7 +51,8 @@
                 ajax: "{{ route('members.index') }}",
 
                 columns: [
-                    {"data": "id", name: 'id', orderable: false, searchable: false,
+                    {
+                        "data": "id", name: 'id', orderable: false, searchable: false,
                         render: function (data, type, row, meta) {
                             return meta.row + meta.settings._iDisplayStart + 1;
                         }
@@ -60,8 +61,9 @@
                     {data: 'last_name', name: 'last_name', orderable: false, searchable: false},
                     {data: 'email', name: 'email', orderable: false, searchable: false},
                     {data: 'info', name: 'info', orderable: false, searchable: false},
-                    {data: "image_path" , name: 'image_path', orderable: false, searchable: false,
-                        render : function(data, type, row, meta) {
+                    {
+                        data: "image_path", name: 'image_path', orderable: false, searchable: false,
+                        render: function (data, type, row, meta) {
                             return `
                             <a href="${row['image_path']}" target="_blank"><i class="fa fa-eye"></i>View</a>
                                `;
@@ -69,8 +71,9 @@
                     },
                     {data: 'is_active', name: 'is_active', orderable: false, searchable: false},
                     {data: 'created_at', name: 'created_at', orderable: false, searchable: false},
-                    {data: "action" , name: 'action', orderable: false, searchable: false,
-                        render : function(data, type, row, meta) {
+                    {
+                        data: "action", name: 'action', orderable: false, searchable: false,
+                        render: function (data, type, row, meta) {
                             let show_url = "{{ route('members.show', ['member' => ':id']) }}";
                             show_url = show_url.replace(':id', row.id);
 
@@ -83,52 +86,52 @@
                                 <button type="button" class="destroy btn btn-danger btn-sm" id="deleteRecord" onclick="deleteRecord(${row.id})"><i class="fa fa-trash"></i></button> |
                                 <button type="button" class="btn btn-info btn-sm details-control"><i class="fa fa-arrow-down"></i></button>
                             `;
-                            }
-                        },
-                    ],
-                });
-
-                $('.datatable').on('click', 'tbody .details-control', function () {
-                    var tr = $(this).closest('tr');
-                    var row = table.row(tr);
-
-                    if (row.child.isShown()) {
-                        row.child.hide();
-                    } else {
-                        axios.get("{{ route('members.getInnerHTML') }}")
-                            .then(function (response) {
-                                row.child(response.data).show();
-                            })
-                            .catch(function (error) {
-                                //
-                            })
-                            .then(function () {
-                                // always executed
-                            });
-                    }
-                });
+                        }
+                    },
+                ],
             });
 
-            function deleteRecord(id) {
-                if (!confirm("Are you sure you want to Delete This?"))
-                    return false;
+            $('.datatable').on('click', 'tbody .details-control', function () {
+                var tr = $(this).closest('tr');
+                var row = table.row(tr);
 
-                let url = "{{ route('members.destroy', ':id') }}";
-                url = url.replace(':id', id);
-
-                axios.post(url, {"_method": 'delete'})
+                if (row.child.isShown()) {
+                    row.child.hide();
+                } else {
+                    axios.get("{{ route('members.getInnerHTML') }}")
                     .then(function (response) {
-                        alert(response.data);
-
-                        window.location.reload()
+                        row.child(response.data.table).show();
                     })
                     .catch(function (error) {
-                        alert(error)
+                        //
                     })
                     .then(function () {
                         // always executed
                     });
-            }
-        </script>
+                }
+            });
+        });
+
+        function deleteRecord(id) {
+            if (!confirm("Are you sure you want to Delete This?"))
+                return false;
+
+            let url = "{{ route('members.destroy', ':id') }}";
+            url = url.replace(':id', id);
+
+            axios.post(url, {"_method": 'delete'})
+            .then(function (response) {
+                alert(response.data);
+
+                window.location.reload()
+            })
+            .catch(function (error) {
+                alert(error)
+            })
+            .then(function () {
+                // always executed
+            });
+        }
+    </script>
 </x-app-layout>
 

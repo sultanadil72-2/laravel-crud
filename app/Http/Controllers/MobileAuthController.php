@@ -30,7 +30,7 @@ class MobileAuthController extends Controller
             'password' => Hash::make($fields['password']),
         ]);
 
-        return response('', 201);
+        return response('', Response::HTTP_NO_CONTENT);
     }
 
     /**
@@ -56,7 +56,11 @@ class MobileAuthController extends Controller
 
         $token = $user->createToken($request->device_name)->plainTextToken;
 
-        return response($token, 201);
+        $response = [
+            'token' => $token
+        ];
+
+        return response($response, 201);
     }
 
     /**
@@ -68,10 +72,10 @@ class MobileAuthController extends Controller
         $user = auth()->user();
 
         if (!$user) {
-            return response('', 401);
+            return response('', Response::HTTP_UNAUTHORIZED);
         }
 
-        if ($request->delete_all) {
+        if ($request->logout_eveywhere) {
             // Revoke all tokens....
             $user->tokens()->delete();
         } else {
@@ -79,6 +83,6 @@ class MobileAuthController extends Controller
             $user->currentAccessToken()->delete();
         }
 
-        return response('', 204);
+        return response('', Response::HTTP_NO_CONTENT);
     }
 }

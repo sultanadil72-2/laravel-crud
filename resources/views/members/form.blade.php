@@ -21,7 +21,8 @@
         </div>
 
         <div class="d-flex justify-content-center">
-            <form id="main_form" @if($member->id) action="{{ route('members.update', $member->id) }}" @else action="{{ route('members.store') }}" @endif method="post" enctype="multipart/form-data">
+            <form id="main_form" @if($member->id) action="{{ route('members.update', $member->id) }}"
+                  @else action="{{ route('members.store') }}" @endif method="post" enctype="multipart/form-data">
                 @csrf
                 @if($member->id)
                     @method('patch')
@@ -63,16 +64,19 @@
                         <label for="first_name"><i class="required">*</i> First Name</label>
                         <input type="text" class="form-control" id="first_name" name="first_name"
                                value="{{ old('first_name', $member->first_name) }}" placeholder="First Name" required>
+                        <small id="first_name_error" class="text-danger"></small>
                     </div>
                     <div class="col-auto">
                         <label for="last_name"><i class="required">*</i> Last Name</label>
                         <input type="text" class="form-control" id="last_name" name="last_name"
                                value="{{ old('last_name', $member->last_name) }}" placeholder="Last Name" required>
+                        <small id="last_name_error" class="text-danger"></small>
                     </div>
                     <div class="col-auto">
                         <label for="email"><i class="required">*</i> Email</label>
                         <input type="text" class="form-control" id="email" name="email"
                                value="{{ old('email', $member->email) }}" placeholder="email@example.com" required>
+                        <small id="email_error" class="text-danger"></small>
                     </div>
                 </div>
                 <div class="row mt-3">
@@ -105,26 +109,37 @@
                 let url = $(main_form).prop('action');
 
                 axios.post(url, formData)
-                    .then(function (response) {
-                        if (!$("#id").val()) {
-                            alert("User Created Successfully");
+                .then(function (response) {
+                    console.log(response)
+                    if (!$("#id").val()) {
+                        alert("User Created Successfully");
 
-                            let id = response.data;
+                        let id = response.data.id;
 
-                            let url = "{{ route('members.show', ':id') }}";
-                            url = url.replace(':id', id);
+                        let url = "{{ route('members.show', ':id') }}";
+                        url = url.replace(':id', id);
 
-                            location.href = url;
-                        } else {
-                            alert(response.data)
+                        location.href = url;
+                    } else {
+                        alert("User Updated Successfully");
+                    }
+                })
+                .catch(function (error) {
+                    if (error.response.data.errors) {
+                        // loop error and show
+                        for (let key in error.response.data.errors) {
+                            let error_message = error.response.data.errors[key];
+
+                            $("#" + key).addClass('is-invalid');
+                            $("#" + key + "_error").html(error_message);
                         }
-                    })
-                    .catch(function (error) {
-                        alert('error: ' + error.response.data)
-                    })
-                    .then(function () {
-                        // always executed
-                    });
+                    } else {
+                        alert(error.response.data.message);
+                    }
+                })
+                .then(function () {
+                    // always executed
+                });
             });
         });
     </script>
